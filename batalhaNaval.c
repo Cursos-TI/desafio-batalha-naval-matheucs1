@@ -1,79 +1,71 @@
 #include <stdio.h>
 
-#define TAMANHO 10
-#define TAMANHO_NAVIO 3
+#define TAMANHO_TABULEIRO 10
+#define COMPRIMENTO_NAVIO 3
 #define AGUA 0
 #define NAVIO 3
 
-int main() {
-    // Cria o tabuleiro 10x10 e preenche com água
-    int tabuleiro[TAMANHO][TAMANHO];
-
-    for (int linha = 0; linha < TAMANHO; linha++) {
-        for (int coluna = 0; coluna < TAMANHO; coluna++) {
+// Função para inicializar o tabuleiro com água
+void inicializarTabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
+    for (int linha = 0; linha < TAMANHO_TABULEIRO; linha++) {
+        for (int coluna = 0; coluna < TAMANHO_TABULEIRO; coluna++) {
             tabuleiro[linha][coluna] = AGUA;
         }
     }
+}
 
-    // Define a posição inicial do navio horizontal
-    int inicioLinhaHorizontal = 2;
-    int inicioColunaHorizontal = 4;
+// Função para tentar posicionar um navio no tabuleiro
+int posicionarNavio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO],
+                    int linhaInicial, int colunaInicial,
+                    int direcaoLinha, int direcaoColuna) {
+    // Verifica se o navio cabe e não colide com outro
+    for (int i = 0; i < COMPRIMENTO_NAVIO; i++) {
+        int linha = linhaInicial + i * direcaoLinha;
+        int coluna = colunaInicial + i * direcaoColuna;
 
-    // Define a posição inicial do navio vertical
-    int inicioLinhaVertical = 5;
-    int inicioColunaVertical = 7;
-
-    // Verifica se o navio horizontal cabe no tabuleiro
-    if (inicioColunaHorizontal + TAMANHO_NAVIO <= TAMANHO) {
-        int podeColocar = 1;
-
-        // Verifica se já tem navio nas posições desejadas
-        for (int i = 0; i < TAMANHO_NAVIO; i++) {
-            if (tabuleiro[inicioLinhaHorizontal][inicioColunaHorizontal + i] == NAVIO) {
-                podeColocar = 0;
-                break;
-            }
-        }
-
-        // Se estiver tudo certo, posiciona o navio horizontal
-        if (podeColocar) {
-            for (int i = 0; i < TAMANHO_NAVIO; i++) {
-                tabuleiro[inicioLinhaHorizontal][inicioColunaHorizontal + i] = NAVIO;
-            }
+        if (linha < 0 || linha >= TAMANHO_TABULEIRO ||
+            coluna < 0 || coluna >= TAMANHO_TABULEIRO ||
+            tabuleiro[linha][coluna] == NAVIO) {
+            return 0; // Não é possível posicionar
         }
     }
 
-    // Verifica se o navio vertical cabe no tabuleiro
-    if (inicioLinhaVertical + TAMANHO_NAVIO <= TAMANHO) {
-        int podeColocar = 1;
-
-        // Verifica se já tem navio nas posições desejadas
-        for (int i = 0; i < TAMANHO_NAVIO; i++) {
-            if (tabuleiro[inicioLinhaVertical + i][inicioColunaVertical] == NAVIO) {
-                podeColocar = 0;
-                break;
-            }
-        }
-
-        // Se estiver tudo certo, posiciona o navio vertical
-        if (podeColocar) {
-            for (int i = 0; i < TAMANHO_NAVIO; i++) {
-                tabuleiro[inicioLinhaVertical + i][inicioColunaVertical] = NAVIO;
-            }
-        }
+    // Posiciona o navio
+    for (int i = 0; i < COMPRIMENTO_NAVIO; i++) {
+        int linha = linhaInicial + i * direcaoLinha;
+        int coluna = colunaInicial + i * direcaoColuna;
+        tabuleiro[linha][coluna] = NAVIO;
     }
 
-    // Exibe o tabuleiro no console
+    return 1; // Sucesso
+}
+
+// Função para exibir o tabuleiro
+void exibirTabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
     printf("=== Tabuleiro de Batalha Naval ===\n\n");
 
-    for (int linha = 0; linha < TAMANHO; linha++) {
-        for (int coluna = 0; coluna < TAMANHO; coluna++) {
+    for (int linha = 0; linha < TAMANHO_TABULEIRO; linha++) {
+        for (int coluna = 0; coluna < TAMANHO_TABULEIRO; coluna++) {
             printf("%d ", tabuleiro[linha][coluna]);
         }
         printf("\n");
     }
 
     printf("\nLegenda: 0 = água | 3 = navio\n");
+}
+
+int main() {
+    int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
+
+    inicializarTabuleiro(tabuleiro);
+
+    // Tenta posicionar alguns navios
+    posicionarNavio(tabuleiro, 2, 4, 0, 1);   // Horizontal
+    posicionarNavio(tabuleiro, 5, 7, 1, 0);   // Vertical
+    posicionarNavio(tabuleiro, 0, 0, 1, 1);   // Diagonal ↘
+    posicionarNavio(tabuleiro, 0, 9, 1, -1);  // Diagonal ↙
+
+    exibirTabuleiro(tabuleiro);
 
     return 0;
 }
