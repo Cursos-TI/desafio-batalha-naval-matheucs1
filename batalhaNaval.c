@@ -1,71 +1,119 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#define TAMANHO_TABULEIRO 10
-#define COMPRIMENTO_NAVIO 3
-#define AGUA 0
+#define TAM 10
 #define NAVIO 3
+#define AGUA 0
+#define EFEITO 5
+#define TAM_HAB 5
 
-// Função para inicializar o tabuleiro com água
-void inicializarTabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
-    for (int linha = 0; linha < TAMANHO_TABULEIRO; linha++) {
-        for (int coluna = 0; coluna < TAMANHO_TABULEIRO; coluna++) {
-            tabuleiro[linha][coluna] = AGUA;
-        }
-    }
+// Inicializa o tabuleiro com água
+void limparTabuleiro(int mapa[TAM][TAM]) {
+    for (int i = 0; i < TAM; i++)
+        for (int j = 0; j < TAM; j++)
+            mapa[i][j] = AGUA;
 }
 
-// Função para tentar posicionar um navio no tabuleiro
-int posicionarNavio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO],
-                    int linhaInicial, int colunaInicial,
-                    int direcaoLinha, int direcaoColuna) {
-    // Verifica se o navio cabe e não colide com outro
-    for (int i = 0; i < COMPRIMENTO_NAVIO; i++) {
-        int linha = linhaInicial + i * direcaoLinha;
-        int coluna = colunaInicial + i * direcaoColuna;
+// Tenta colocar um navio no tabuleiro
+int colocarNavio(int mapa[TAM][TAM], int lin, int col, int dirLin, int dirCol) {
+    for (int k = 0; k < 3; k++) {
+        int x = lin + k * dirLin;
+        int y = col + k * dirCol;
 
-        if (linha < 0 || linha >= TAMANHO_TABULEIRO ||
-            coluna < 0 || coluna >= TAMANHO_TABULEIRO ||
-            tabuleiro[linha][coluna] == NAVIO) {
-            return 0; // Não é possível posicionar
-        }
+        if (x < 0 || x >= TAM || y < 0 || y >= TAM || mapa[x][y] == NAVIO)
+            return 0;
     }
 
-    // Posiciona o navio
-    for (int i = 0; i < COMPRIMENTO_NAVIO; i++) {
-        int linha = linhaInicial + i * direcaoLinha;
-        int coluna = colunaInicial + i * direcaoColuna;
-        tabuleiro[linha][coluna] = NAVIO;
+    for (int k = 0; k < 3; k++) {
+        int x = lin + k * dirLin;
+        int y = col + k * dirCol;
+        mapa[x][y] = NAVIO;
     }
 
-    return 1; // Sucesso
+    return 1;
 }
 
-// Função para exibir o tabuleiro
-void exibirTabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
-    printf("=== Tabuleiro de Batalha Naval ===\n\n");
+// Exibe o tabuleiro no console
+void mostrarTabuleiro(int mapa[TAM][TAM]) {
+    printf("\n=== Batalha Naval ===\n\n");
 
-    for (int linha = 0; linha < TAMANHO_TABULEIRO; linha++) {
-        for (int coluna = 0; coluna < TAMANHO_TABULEIRO; coluna++) {
-            printf("%d ", tabuleiro[linha][coluna]);
+    for (int i = 0; i < TAM; i++) {
+        for (int j = 0; j < TAM; j++) {
+            printf("%d ", mapa[i][j]);
         }
         printf("\n");
     }
 
-    printf("\nLegenda: 0 = água | 3 = navio\n");
+    printf("\nLegenda: 0 = água | 3 = navio | 5 = habilidade\n");
+}
+
+// Cria matriz em formato de cone
+void gerarCone(int mat[TAM_HAB][TAM_HAB]) {
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            mat[i][j] = (j >= TAM_HAB / 2 - i && j <= TAM_HAB / 2 + i) ? 1 : 0;
+        }
+    }
+}
+
+// Cria matriz em formato de cruz
+void gerarCruz(int mat[TAM_HAB][TAM_HAB]) {
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            mat[i][j] = (i == TAM_HAB / 2 || j == TAM_HAB / 2) ? 1 : 0;
+        }
+    }
+}
+
+// Cria matriz em formato de octaedro (losango)
+void gerarOctaedro(int mat[TAM_HAB][TAM_HAB]) {
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            int dist = abs(i - TAM_HAB / 2) + abs(j - TAM_HAB / 2);
+            mat[i][j] = (dist <= TAM_HAB / 2) ? 1 : 0;
+        }
+    }
+}
+
+// Aplica uma habilidade no tabuleiro
+void aplicarEfeito(int mapa[TAM][TAM], int hab[TAM_HAB][TAM_HAB], int centroX, int centroY) {
+    for (int i = 0; i < TAM_HAB; i++) {
+        for (int j = 0; j < TAM_HAB; j++) {
+            int x = centroX - TAM_HAB / 2 + i;
+            int y = centroY - TAM_HAB / 2 + j;
+
+            if (x >= 0 && x < TAM && y >= 0 && y < TAM && hab[i][j] == 1 && mapa[x][y] == AGUA)
+                mapa[x][y] = EFEITO;
+        }
+    }
 }
 
 int main() {
-    int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
+    int tabuleiro[TAM][TAM];
+    int cone[TAM_HAB][TAM_HAB];
+    int cruz[TAM_HAB][TAM_HAB];
+    int octaedro[TAM_HAB][TAM_HAB];
 
-    inicializarTabuleiro(tabuleiro);
+    limparTabuleiro(tabuleiro);
 
-    // Tenta posicionar alguns navios
-    posicionarNavio(tabuleiro, 2, 4, 0, 1);   // Horizontal
-    posicionarNavio(tabuleiro, 5, 7, 1, 0);   // Vertical
-    posicionarNavio(tabuleiro, 0, 0, 1, 1);   // Diagonal ↘
-    posicionarNavio(tabuleiro, 0, 9, 1, -1);  // Diagonal ↙
+    // Posiciona alguns navios
+    colocarNavio(tabuleiro, 2, 4, 0, 1);   // horizontal
+    colocarNavio(tabuleiro, 5, 7, 1, 0);   // vertical
+    colocarNavio(tabuleiro, 0, 0, 1, 1);   // diagonal ↘
+    colocarNavio(tabuleiro, 0, 9, 1, -1);  // diagonal ↙
 
-    exibirTabuleiro(tabuleiro);
+    // Gera habilidades
+    gerarCone(cone);
+    gerarCruz(cruz);
+    gerarOctaedro(octaedro);
+
+    // Aplica efeitos no tabuleiro
+    aplicarEfeito(tabuleiro, cone, 3, 3);
+    aplicarEfeito(tabuleiro, cruz, 6, 6);
+    aplicarEfeito(tabuleiro, octaedro, 8, 2);
+
+    // Mostra resultado final
+    mostrarTabuleiro(tabuleiro);
 
     return 0;
 }
